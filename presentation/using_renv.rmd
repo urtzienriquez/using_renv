@@ -1,0 +1,341 @@
+---
+title: 'Using *renv*'
+subtitle: 'R code that works forever, everywhere'
+author: 'Urtzi Enriquez-Urzelai'
+date: "`r Sys.Date()`"
+output: 
+  beamer_presentation:
+    theme: Madrid
+header-includes: |
+  \AtBeginSection{}
+  \AtBeginSubsection{}
+  \setbeamertemplate{footline}{
+    \leavevmode%
+    \hbox{%
+      \begin{beamercolorbox}[wd=.2\paperwidth,ht=2.25ex,dp=1.1ex,center]{section in head/foot}%
+        \usebeamerfont{section in head/foot}\hspace*{1ex}\insertsection
+      \end{beamercolorbox}%
+      \begin{beamercolorbox}[wd=.6\paperwidth,ht=2.25ex,dp=1.1ex,center]{title in head/foot}%
+        \usebeamerfont{title in head/foot}\hspace*{1ex}\insertsubsection
+      \end{beamercolorbox}%
+      \begin{beamercolorbox}[wd=.2\paperwidth,ht=2.25ex,dp=1.1ex,right]{title in head/foot}%
+        \usebeamerfont{title in head/foot}\insertframenumber{} / \inserttotalframenumber\hspace*{1ex}
+      \end{beamercolorbox}%
+    }%
+    \vskip0pt%
+  }
+---
+
+```{r setup, include=FALSE}
+library(callr)
+
+# Clean up renv's internal state from any previous runs
+if (exists("renv", envir = .GlobalEnv, inherits = FALSE)) {
+    rm(renv, envir = .GlobalEnv)
+}
+
+# Aggressively reset library paths to system defaults
+# Get all default R library paths including user library
+default_libs <- c(
+    Sys.getenv("R_LIBS_USER"),
+    .Library.site,
+    .Library
+)
+# Remove empty strings and set
+default_libs <- default_libs[default_libs != ""]
+.libPaths(default_libs)
+
+# Clean up all renv-related files from previous runs
+files_to_remove <- c(".renv", "renv.lock", ".Rprofile", "demo_renv_project")
+for (file in files_to_remove) {
+    if (file.exists(file) || dir.exists(file)) {
+        unlink(file, recursive = TRUE)
+    }
+}
+
+# Wait a moment to ensure filesystem operations complete
+Sys.sleep(0.5)
+
+# Create demo directory (but don't initialize renv yet)
+demo_dir <- file.path(getwd(), "demo_renv_project")
+dir.create(demo_dir)
+
+# Save the clean library paths for use throughout the document
+original_libpaths <- .libPaths()
+```
+
+### Outline {.unnumbered .unlisted}
+\tableofcontents
+
+# Introduction
+
+## Why would you want to use *renv*?
+
+### Code re-usability {.unnumbered}
+
+Some nice introduction.
+
+## Test
+
+### Test {.unnumbered}
+
+::::::::::::::::::: {.columns}
+::: {.column width="50%"}
+\centering
+Some nice introduction.
+:::
+
+::: {.column width="50%"}
+\centering
+
+* more
+* info
+* here
+:::
+:::::::::::::::::::
+
+\vfill
+
+\begin{block}{First: block}
+This is an important warning message that appears at the bottom of the slide.
+\end{block}
+
+\begin{alertblock}{Then: alertblock}
+This is an important warning message that appears at the bottom of the slide.
+\end{alertblock}
+
+\begin{exampleblock}{Finally: exampleblock}
+This is an important warning message that appears at the bottom of the slide.
+\end{exampleblock}
+
+## Test
+
+### Test {.unnumbered .fragile}
+
+::::::::::::::::::: {.columns}
+:::::: {.column width="35%"}
+\centering
+Some nice introduction.
+```{r, eval=FALSE, echo=TRUE}
+library(renv)
+activate()
+```
+
+Is the same as
+```{r, eval=FALSE, echo=TRUE}
+renv::activate()
+```
+::::::
+:::::: {.column width="50%"}
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+\begin{itemize}
+\item more
+\item info
+\item here
+\end{itemize}
+\end{minipage}
+\end{center}
+::::::
+:::::::::::::::::::
+
+# Usage
+
+## Initialize *renv*
+
+### Before initializing *renv* {.unnumbered}
+
+\small
+```{r}
+.libPaths()
+```
+\normalsize
+
+\pause
+
+And since we are using the system-wide library, we can load the installed packages. E.g.:
+
+\small
+```{r}
+"cowsay" %in% rownames(installed.packages())
+```
+\normalsize
+
+### Initialize *renv* {.unnumbered}
+
+
+This will initialize the project, register the "essential" packages of a bare bone project, and create the `renv.lock` file
+
+\small
+```{r, eval=FALSE}
+renv::init()
+```
+\fontsize{6}{5}\selectfont
+```{r, echo=FALSE}
+# Use callr to run init in a completely isolated subprocess
+# Set R_LIBS environment variable to ensure subprocess can find renv
+init_output <- callr::r(
+    func = function(dir) {
+        # Change to the demo directory
+        setwd(dir)
+        # Initialize renv
+        capture.output({
+            renv::init(restart = FALSE)
+        })
+    },
+    args = list(dir = demo_dir),
+    show = FALSE,
+    spinner = FALSE,
+    env = c(R_LIBS = paste(original_libpaths, collapse = .Platform$path.sep))
+)
+
+cat(paste(init_output, collapse = "\n"))
+```
+
+### After the initialization {.unnumbered}
+
+\small
+```{r, eval=FALSE}
+list.files()
+```
+```{r, echo=FALSE}
+list.files(demo_dir, all.files = TRUE, no.. = TRUE)
+```
+\normalsize
+
+\pause
+
+And now, our library paths have changed!
+
+\small
+```{r, eval=FALSE}
+.libPaths()
+```
+\fontsize{6}{5}\selectfont
+```{r, echo=FALSE}
+# Change to demo directory to show its library paths
+original_wd <- getwd()
+setwd(demo_dir)
+# Source the renv activate script to get the correct library paths
+invisible(capture.output(source(".renv/activate.R")))
+lib_paths <- .libPaths()
+# Restore immediately
+setwd(original_wd)
+.libPaths(original_libpaths)
+print(lib_paths)
+```
+\normalsize
+
+### Inspect the environment {.unnumbered}
+
+
+But now we cannot use system-wide installed packages. Look at this:
+
+\small
+```{r, eval=FALSE}
+"cowsay" %in% rownames(installed.packages())
+```
+```{r, echo=FALSE}
+original_wd <- getwd()
+setwd(demo_dir)
+invisible(capture.output(source(".renv/activate.R")))
+result <- "cowsay" %in% rownames(installed.packages())
+# Restore immediately
+setwd(original_wd)
+.libPaths(original_libpaths)
+print(result)
+```
+\normalsize
+
+## Installing and tracking packages
+
+### Installing a new package {.unnumbered}
+
+Let's install a package in our renv environment:
+
+\small
+```{r, eval=FALSE}
+renv::install("cowsay")
+```
+\tiny
+```{r, echo=FALSE}
+original_wd <- getwd()
+setwd(demo_dir)
+invisible(capture.output(source(".renv/activate.R")))
+renv::install("cowsay", prompt = FALSE)
+# Restore immediately
+setwd(original_wd)
+.libPaths(original_libpaths)
+```
+\normalsize
+
+### Check if package is available {.unnumbered}
+
+\small
+```{r, eval=FALSE}
+"cowsay" %in% rownames(installed.packages())
+```
+```{r, echo=FALSE}
+original_wd <- getwd()
+setwd(demo_dir)
+invisible(capture.output(source(".renv/activate.R")))
+result <- "cowsay" %in% rownames(installed.packages())
+# Restore immediately
+setwd(original_wd)
+.libPaths(original_libpaths)
+print(result)
+```
+\normalsize
+
+### Snapshot to save the state {.unnumbered}
+
+Use `renv::snapshot()` to record the installed package in the lockfile:
+
+\small
+```{r, eval=FALSE}
+renv::snapshot()
+```
+```{r, echo=FALSE}
+original_wd <- getwd()
+setwd(demo_dir)
+invisible(capture.output(source(".renv/activate.R")))
+snapshot_output <- capture.output(renv::snapshot(prompt = FALSE))
+# Restore immediately
+setwd(original_wd)
+.libPaths(original_libpaths)
+cat(paste(snapshot_output, collapse = "\n"))
+```
+\normalsize
+
+### Now it's tracked! {.unnumbered}
+
+\small
+```{r, eval=FALSE}
+renv::status()
+```
+```{r, echo=FALSE}
+original_wd <- getwd()
+setwd(demo_dir)
+invisible(capture.output(source(".renv/activate.R")))
+status_output <- capture.output(renv::status())
+# Restore immediately
+setwd(original_wd)
+.libPaths(original_libpaths)
+cat(paste(status_output, collapse = "\n"))
+```
+\normalsize
+
+The package is now in your `renv.lock` file and will be restored when others use `renv::restore()`.
+
+```{r cleanup, include=FALSE}
+# Clean up all renv-related files
+files_to_remove <- c(".renv", "renv.lock", ".Rprofile", "demo_renv_project")
+for (file in files_to_remove) {
+    if (file.exists(file) || dir.exists(file)) {
+        unlink(file, recursive = TRUE)
+    }
+}
+
+# Final restoration of library paths
+.libPaths(original_libpaths)
+```
