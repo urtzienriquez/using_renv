@@ -1,6 +1,6 @@
 # =================================================================
 # Interactive renv Tutorial
-# Run this script step-by-step 
+# Run this script step-by-step
 # =================================================================
 
 # PART 1: BEFORE RENV =============================================
@@ -67,65 +67,10 @@ renv::status()
 check_locked_packs()
 
 
-# # PART 6: WHAT'S IN THE LOCKFILE? ==============================
-# cat("\n=== PART 6: Inspecting the lockfile ===\n\n")
-#
-# # View the lockfile
-# cat("13. The lockfile (renv.lock) contains:\n")
-# cat("    - R version\n")
-# cat("    - Package versions\n")
-# cat("    - Package sources\n\n")
-#
-# # You can peek at it
-# if (file.exists("renv.lock")) {
-#     lockfile <- jsonlite::read_json("renv.lock")
-#     cat("R version:", lockfile$R$Version, "\n")
-#     cat("Number of packages:", length(lockfile$Packages), "\n")
-#     cat("Some packages:", paste(head(names(lockfile$Packages), 5), collapse = ", "), "...\n")
-# }
-#
-# cat("\n>>> Press Enter to continue to Part 7...")
-# readline()
-#
-
-
-# PART 8: CLEANUP (OPTIONAL) ===================================
-# cat("\n\n=== PART 8: Cleanup (optional) ===\n\n")
-#
-# cat("If you want to remove renv from this project:\n")
-# cat("    - renv::deactivate()  : Deactivate renv\n")
-# cat("    - Delete renv/, .Rprofile, renv.lock\n\n")
-#
-# cat("Do you want to deactivate renv now? (y/n): ")
-# response <- readline()
-#
-# if (tolower(response) == "y") {
-#     renv::deactivate()
-#     cat("renv deactivated. You can manually delete the renv files.\n")
-# } else {
-#     cat("renv remains active. Happy coding!\n")
-# }
 
 renv::deactivate()
 renv::activate()
 
-# PART 7: SHARING YOUR PROJECT ===============================
-cat("\n=== PART 7: Sharing your project ===\n\n")
-
-cat("14. To share your project:\n")
-cat("    a) Share your code + renv.lock file\n")
-cat("    b) Collaborators run: renv::restore()\n")
-cat("    c) renv will install the EXACT same package versions\n\n")
-
-cat("15. Key renv commands:\n")
-cat("    - renv::init()      : Initialize renv in project\n")
-cat("    - renv::install()   : Install packages\n")
-cat("    - renv::snapshot()  : Save current state to lockfile\n")
-cat("    - renv::restore()   : Install packages from lockfile\n")
-cat("    - renv::status()    : Check project status\n")
-cat("    - renv::update()    : Update packages\n")
-
-renv::deactivate()
 
 # Safe removal with checks
 # if (dir.exists("renv")) unlink("renv", recursive = TRUE)
