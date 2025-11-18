@@ -1,6 +1,6 @@
 # =================================================================
 # Interactive renv Tutorial
-# Run this script step-by-step with your students
+# Run this script step-by-step 
 # =================================================================
 
 # PART 1: BEFORE RENV =============================================
